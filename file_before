@@ -1,0 +1,25 @@
+import com.luna.testing.module.edi.common.modules.tm.DocPublishPage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import static org.apache.commons.lang3.BooleanUtils.isFalse;
+import org.apache.logging.log4j.Logger;
+import cucumber.api.java8.En;
+
+public class TMPublishSteps implements En {
+    @Inject TMPublishSteps(Logger log, DocPublishPage AufDoc) {
+        And("^we wait up to (\\d+) seconds until the published record for the event (\\d+) has been "
+            + "updated$", (Integer arg0, Integer arg1) -> {
+                long max = TimeUnit.SECONDS.toMillis(arg0);
+                long intervall = 3000;
+                long actual = 0;
+                List<Integer> eventIds = new ArrayList<>();
+                eventIds.add(arg1);
+
+                while (isFalse(AufDoc.checkforPublished(eventIds)) && actual < max) {
+                    actual = actual + intervall;
+                }
+            });
+    }
+}
