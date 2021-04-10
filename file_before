@@ -1,3 +1,4 @@
+import com.luna.testing.framework.annotation.Config;
 import com.luna.testing.module.edi.common.modules.tm.DocPublishPage;
 import java.util.ArrayList;
 import java.util.List;
@@ -5,17 +6,40 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import static org.apache.commons.lang3.BooleanUtils.isFalse;
 import org.apache.logging.log4j.Logger;
+import org.testng.Assert;
 import cucumber.api.java8.En;
 
 public class TMPublishSteps implements En {
+
+    @Inject private @Config String customerEventDocPublishTo;
+    @Inject private @Config String customerEventDocPublishLoad;
+    
     @Inject TMPublishSteps(Logger log, DocPublishPage AufDoc) {
-        And("^we wait up to (\\d+) seconds until the published record for the event (\\d+) has been "
-            + "updated$", (Integer arg0, Integer arg1) -> {
+    
+        And("^we wait up to (\\d+) seconds until the published record for the event (\\w+) has been "
+            + "updated$", (Integer arg0, String arg1) -> {
+            
+                String customerEvent = null;
+                switch (arg1) {
+                    case "docPublishTO":
+                        customerEvent = customerEventDocPublishTo;
+                        break;
+                    case "docPublishLoad":
+                        customerEvent = customerEventDocPublishLoad;
+                        break;
+                    default:
+                        Assert.fail("The given customer event is not valid. "
+                                + "Choose either docPublishTO or docPublishLoad");
+                        break;
+                }
+
+                int customerEventId = Integer.parseInt(customerEvent);
+                
                 long max = TimeUnit.SECONDS.toMillis(arg0);
                 long intervall = 3000;
                 long actual = 0;
                 List<Integer> eventIds = new ArrayList<>();
-                eventIds.add(arg1);
+                eventIds.add(customerEventId);
 
                 while (isFalse(AufDoc.checkforPublished(eventIds)) && actual < max) {
                     actual = actual + intervall;
